@@ -312,7 +312,7 @@ Investors conduct voting for the choice of a delegate by a single vote.
 
 ### Delegates voting management
 
-<img align="сenter" width="300" height="170" src="https://github.com/plasmadlt/plasmadlt-invest-fund/raw/master/img/voted2.png"> </br>
+<img align="сenter" width="300" height="190" src="https://github.com/plasmadlt/plasmadlt-invest-fund/raw/master/img/voted2.png"> </br>
 
 Delegates manage the investment fund and make decisions by voting ⅔ of all delegates.
 
