@@ -171,7 +171,7 @@ The investor sends the investment fund's accounts to the escrow deposit of the i
 
 ### Investment Fund Dividend Distribution
 
-<img align="сenter" width="390" height="190" src="https://github.com/plasmadlt/plasmadlt-invest-fund/raw/master/img/distribution.png"> </br>
+<img align="сenter" width="420" height="190" src="https://github.com/plasmadlt/plasmadlt-invest-fund/raw/master/img/distribution.png"> </br>
 
 Investment fund bank, receives income and distributes it among holders of tokenized fund liabilities
 
