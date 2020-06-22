@@ -1,11 +1,11 @@
-const gmspContract = require('../shared/gmsp-contract');
+const testContract = require('../shared/test-contract');
 const util = require('util');
 const sleep = util.promisify(setTimeout);
 const loggerMaker = require('../config/logger.js');
-const logger = loggerMaker.getLogger('gmsp-oracle');
+const logger = loggerMaker.getLogger('test-oracle');
 const sleepInterval = 1000 * 60 * 60 * 24; //  1 day
 
-class GMSPOracle {
+class TESTOracle {
   constructor() {
     this.normalSleepInterval = sleepInterval;
     this.errorSleepInterval = sleepInterval;
@@ -17,7 +17,7 @@ class GMSPOracle {
 
   async iterate() {
     logger.info('iteration started');
-    await gmspContract.reward();
+    await testContract.reward();
     logger.info('iteration finished');
     return {nonStop: false};
   };
@@ -44,5 +44,5 @@ class GMSPOracle {
   }
 }
 
-const gmspOracle = new GMSPOracle();
-module.export = gmspOracle.run();
+const testOracle = new TESTOracle();
+module.export = testOracle.run();

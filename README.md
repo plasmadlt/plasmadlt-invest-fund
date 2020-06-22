@@ -100,7 +100,7 @@ Perform the functions:
 * Management in protocol code change.
 
 
-### Applicable for Organization
+### Applicable for DAO Organization
 
 * Equity funds;
 * Bond funds;
@@ -151,14 +151,72 @@ Basically, the following are needed for token creation and deployment
  Please, find below demo commands. Consider this code as foundation for base pipeline for integrating and deploying.
  PlasmaPay network fully supports this mechanisms.
 
- #### Create token
+# Create token
+# Create token in production
+
+* Activate the production account in official wallet PlasmaPay on the dashboard: https://app.plasmapay.com/dashboard and decrypt your private keys (key icon on the wallet). Attention: you can create only one account in PlasmaPay and the account's name will be your contract name.
+* Choice producer from the network from http://plasmadlt.com/monitor
+* Setup dApp https://app.plasmapay.com/dashboard and get Auoth for front-end
+
+
+## Import wallet  
+
 ```
- docker exec -i <network> sol sol --url --wallet-url  push action ion.token create '{"issuer": «gmsp.admin», "maximum_supply": "10000.0000 GMSP"}' -p ion.token@active
+sol --url --wallet-url   wallet import --private-key 5JF********************************
 ```
- #### Issue token and Send
+* unlock wallet
+
 ```
- docker exec -i <network> sol sol --url --wallet-url  push action gmsp issue '{"to":"aaaaaaaaaaaa", "quantity":"10000", "paySysCms": false, "memo": "test issue"}' -p      gmsp.admin@active
+sol wallet unlock --password 5JF********************************
 ```
+
+## Buckle you token with ion contracts
+```
+sol set contract accountname  Users/contracts/ion.token -p accountname@active
+```
+
+## Deploy contract in production
+```
+sol --url set contract accountname /Users/contracts/ion.token -p accountname@active
+Reading WASM from Users/plasma//build/contracts/ion.token/ion.token.wasm...
+Publishing contract...
+executed transaction: Wcsc********************************  10048 bytes  4014 us
+#           ion <= ion::setcode                 {"account":"accountname","vmtype":0,"vmversion":0,"code":"00sd********************************...
+#           ion <= ion::setabi                  {"account":"accountname","abi":"0c696********************************...
+warning: transaction executed locally, but may not be confirmed by the network yet         ]
+```
+## Create Supply  
+
+```
+sol --url  push action accountname create '{"issuer": "accountname", "maximum_supply": "1000000.000000 TEST"}' -p accountname@active
+
+
+executed transaction: eef5b********************************  120 bytes  729 us
+#  accountname <= accountname::create         {"issuer":"accountname","maximum_supply":"1000000.000000 TEST"}
+warning: transaction executed locally, but may not be confirmed by the network yet         ]
+```
+
+## Check supply
+
+```
+ sol --url http://nothtrust.liberty.plasmadlt.com get currency stats accountname TEST
+
+
+{
+  "TEST": {
+    "supply": "0.000000 TEST",
+    "max_supply": "1000000.000000 TEST",
+    "issuer": "accountname"
+  }
+```
+
+## Allow the system wrap contract - call the actions of our token (BUY/SELL) with inter rate token contract
+```
+sol --url --wallet-url set account permission accountname active '{"keys": [{"key": "PLASMA***************************", "weight": 1}], "threshold": 1, "accounts": [
+{"permission": {"actor": "simple.token", "permission": "ion.code"}, "weight": 1}
+], "waits": []}' -p accountname@active
+```
+
 ## Income distribution and automated payouts
 ### Sending a deposit to the Investment Fund
 
@@ -211,7 +269,7 @@ There are a few major elements, constructing fully connected payout system, rela
 
  One simple command is fairly enough - to deploy this smart contract, after compilation with ION.CDT tool.
  ```
-  docker exec -i <network> sol set sol --url --wallet-url  contract gmsp.reward host-share/contracts/accountreward -p accountreward@active*
+sol --url --wallet-url set contract accountname host-share/contracts/accountreward -p accountreward@active*
  ```
  Also, this API call (for example - rewards execution) could be maintained by some serive, oracle watcher. The idea is to execute rewards daily, or onces in some time (12h). Please, refer to the following code sample -
 
@@ -224,84 +282,84 @@ There are a few major elements, constructing fully connected payout system, rela
 
 ## Asset Exchange
 
-PlasmaPay netwotk contains special smart-contracts, needed for assets exchange, necessary transfers and forex operations. Based on this contracts, invest fund operations, related to token exchange - could be easily executed and applied. The way our platform uses it, connected with investments operations - buy / sell various sets of tokens, for example - gambling protocols, etc..
+Set the token rate against PLASMA
+token PBV = 2 / (10 ^ 4), 1 PBV = 0,0002 PLASMA
 
-Two main primitives are implemented on PlasmaPay platform - plasma.orderbook and plasma.forex exchagnes protocols.
-Let us demostrate the principals, connected with plasma.orderbook exchange protocol.
-In general, the following necessary API calls are introduced for this smart contract:
-
-***Setting an order to buy arbitrary tokens at a price set by the user***
-
-***void bid(ion::name user, std::string amount, uint64_t rate, uint64_t precision, ion::symbol_code smbl_code, bool paySysCms)***
-
-```
-*ion::name user - A user who wants to purchase certain types of tokens.*
-
-*std::string amount - The number and symbol of tokens for the transaction that the user is ready to buy, in the format ion::big_asset.*
-
-*uint64_t rate - Rate at which the user is ready to buy tokens, value.*
-
-*uint64_t precision - Rate at which the user is ready to buy tokens, accuracy.*
-
-*ion::symbol_code smbl_code - Token symbol that the user offers as a payment for the token that interests him.*
-```
-***Setting an order to sell arbitrary tokens at a price set by the user.***
-
-***void ask(ion::name user, std::string amount, uint64_t rate, uint64_t precision, ion::symbol_code smbl_code, bool paySysCms)***
-```
-*ion::name user - A user who wants to sell tokens of a certain type.*
-
-*std::string amount - The number and symbol of tokens for the transaction that the user is willing to sell, in the format ion::big_asset.*
-
-*uint64_t rate - Rate at which the user is ready to sell tokens, value.*
-
-*uint64_t precision - Rate at which the user is ready to sell tokens, accuracy.*
-
-*ion::symbol_code smbl_code - Token symbol for which the user exchanges (sells) their tokens, interest.*
-
-***Setting an order to buy arbitrary tokens at a market price.***
-
-***void bidmarket(ion::name user, std::string amount, ion::symbol_code smbl_code, bool paySysCms);***
-
-*ion::name user - A user who wants to purchase certain types of tokens.*
-
-*std::string amount - The number and symbol of tokens for the transaction that the user is ready to buy, in the format ion::big_asset.*
-
-*ion::symbol_code smbl_code - Token symbol that the user offers as a payment for the token that interests him.*
-
-***Setting an order to sell arbitrary tokens at a market price.***
-
-***void askmarket(ion::name user, std::string amount, ion::symbol_code smbl_code, bool paySysCms);***
-
-*ion::name user - A user who wants to sell tokens of a certain type.*
-
-*std::string amount - The number and symbol of tokens for the transaction that the user is willing to sell, in the format ion::big_asset.*
-
-*ion::symbol_code smbl_code - Token symbol for which the user exchanges (sells) their tokens, interest.*
-
-Based on this API calls, we could implement bash scrips - to provide buy / sell operations for invest tokens.
-Below, please, find and example
-
-( # place order -> bank is ready to sell tokens )
-* docker exec -i <network> sol --url  --wallet-url  push action plasma.fxob ask '["bank.gmsp", "2.0000 GMSP", "1000", "0", "USDP", "1"]' -p bank.gmsp@active*
-
-( # place order -> user is interested to buy some tokens )
-* docker exec -i <network> sol --url  --wallet-url  push action plasma.fxob bid '["someuser", "1.0000 GMSP", "1000", "0", "USDP", "1"]' -p someuser@active*
-
-( # please, execute orders )
-* docker exec -i <network> sol --url  --wallet-url  push action plasma.fxob process '["ID_1", "ID_2"]' -p plasma.fxob@active*
-
-This is a brief sample, demonstrating how to execute invest tokens exchange on PlasmaPay platform.
-Actually, various combinations could be implemented, depending on your needs and ideas.
-
-```
-
+ ```
+sol --url --wallet-url push action simple.token updaterate '["accountname", "TEST", "PLASMA", "2", "4"]' -p accountname@active
+ ```
 ## Voiting systems for project management -  DAO
 
 
 ### Delegate Selection
 
 <img align="сenter" width="360" height="170" src="https://github.com/plasmadlt/plasmadlt-invest-fund/raw/master/img/voted.png"> </br>
+
+To use the voting system, the choice of delegates and projects for investment, you can use the proposed
+PlasmaPay smart counter simple_vote.
+
+Each owner can be a delegate and an authorized account for decision-making.
+on investments.
+
+You can use the smart contract method
+```
+[[ion::action]]
+void registrate(ion::name account);
+```
+method parameter is the name of the account, the candidate for delegate. Check that the account has the right amount of tokens,
+or holds these tokens for a certain period of time - implemented from the outside, the usual classic request get stat, or
+at the discretion of the user - the implementation may be different.
+
+After adding a user to the confection, other users - token holders, can vote for the candidate.
+You can use the smart contract method for this.
+```
+[[ion::action]]
+void addvote(ion::name account, ion::name candidate);
+```
+method parameters are the name of the account that is voting and the name of the candidate for whom the vote is.
+It is assumed that the candidate, having different tokens, can participate in different investment funds. On the side of the investment fund
+regulation remains - which users, token holders, can take part in the vote.
+Having a certain balance, or participating in the project for a long time, etc.
+
+When gaining a certain number of votes, the candidate becomes a delegate. It happens automatically
+the number of votes to initiate the transition - configurable on the side of the investment fund.
+All candidates and delegates are stored in separate blockchain tables that are publicly available, for example, through the API
+
+ ```
+sol --url --wallet-url  get table simple.vote simple.vote candidates
+sol --url --wallet-url  get table simple.vote simple.vote delegates
+ ```
+As soon as a candidate becomes a delegate, this account will automatically be given permission to vote
+for choosing a project for investment.
+
+
+Any project wishing to receive investments can apply by registering in the invest fund system.
+To do this, you can use the following method
+
+void addproject(ion::name user, ion::name project, ion::name bank, ion::asset quantity);
+
+method parameters
+     - user registering the project
+     - account name of the project for investment
+     - account for transferring funds
+     - desired amount of investment
+
+user, project name and bank account - it is permissible that they can be the same name, match.
+the status of each project can be tracked using the request
+
+```
+sol --url --wallet-url get table simple.vote simple.vote investments
+```
+In addition to the basic information, you can see in the table how many votes the project has gained at the moment, its status.
+Each project has its quota, or percentage - how many votes it should receive from delegates.
+This parameter is configured on the side of the invest fund, and can be either a number - conditionally 20 votes, or a percentage -
+70% of delegates should support. As soon as one of the two conditions is fulfilled, the transfer of funds takes place automatically
+to the account specified by the project. Transfer occurs instantly after receiving a decisive vote.
+You can use the method to vote for the project.
+```
+void support(ion::name project, ion::name delegate);
+```
+method parameters - this is the name of the project, and the name of the delegate - who votes for investments in this project.
 
 Investors conduct voting for the choice of a delegate by a single vote.
 
@@ -335,21 +393,21 @@ Lets assume we have four accounts created on the network:
 Bash example - how to configure execution
 
 ```
-docker exec -i <network> sol --url  --wallet-url set account permission mymultisig11 active '{"threshold":2,"keys":[],"accounts":[{"permission":{"actor":"partner11111","permission":"active"},"weight":1},{"permission":{"actor":"partner22222","permission":"active"},"weight":1},{"permission":{"actor":"partner33333","permission":"active"},"weight":1}],"waits":[]}' owner -p mymultisig11@owner
+sol --url  --wallet-url set account permission mymultisig11 active '{"threshold":2,"keys":[],"accounts":[{"permission":{"actor":"partner11111","permission":"active"},"weight":1},{"permission":{"actor":"partner22222","permission":"active"},"weight":1},{"permission":{"actor":"partner33333","permission":"active"},"weight":1}],"waits":[]}' owner -p mymultisig11@owner
 ```
 
 Proposal - let's make an investment or vote for delegate
 ```
 
-docker exec -i <network> sol --url  --wallet-url  multisig propose payme '[{"actor": "partner22222", "permission": "active"},{"actor": "partner33333", "permission": "active"}]' '[{"actor": "mymultisig11", "permission": "active"}]' ion.token transfer '{"from":"mymultisig11", "to":"partner11111", "quantity":"25.0000 GMSP", "memo":"Pay partner11111 some money"}' -p partner11111@active
+sol --url  --wallet-url  multisig propose payme '[{"actor": "partner22222", "permission": "active"},{"actor": "partner33333", "permission": "active"}]' '[{"actor": "mymultisig11", "permission": "active"}]' ion.token transfer '{"from":"mymultisig11", "to":"partner11111", "quantity":"25.0000 TEST", "memo":"Pay partner11111 some money"}' -p partner11111@active
 ```
 Ok, I agree and gonna approve
 ```
-docker exec -i <network> sol --url  --wallet-url   multisig approve partner11111 payme '{"actor": "partner22222", "permission": "active"}' -p partner22222@active
+sol --url  --wallet-url   multisig approve partner11111 payme '{"actor": "partner22222", "permission": "active"}' -p partner22222@active
 ```
 Now that the multisig transaction is approved and user can execute it.
 ```
-docker exec -i <network> sol --url  --wallet-url multisig exec partner11111 payme -p partner11111@active
+sol --url  --wallet-url multisig exec partner11111 payme -p partner11111@active
 ```
 
 ## External data management system
@@ -387,15 +445,14 @@ Let's have a look - how typical oracle web-service execution works. The process 
 git clone https://github.com/plasmadlt/plasmadlt-invest-fund/blob/master/src/oracle/
 cd oracle
 // install node modules
-// install PlasmaJS
-docker run -it -v "$PWD":/app -w /app node:latest npm -i
+npm install
 // run oracle
-docker run -it -v "$PWD":/app -d --restart unless-stopped -w /app node:latest node
+ nodemon --watch fiat --watch shared --watch
  ```
 For better integration, data protection, privacy and safety reasons, you are obliged to apply some third-party software, such as Docker, Cubernetes, to embed your service into.
 
 
-## Referral Loyalty System
+## Referral Loyalty System (soon)
 
 The Referral protocol is a modular solution for setting up a referral system that allows you to create a multi-level system where the affiliate attracts new buyers and referrals using the generated link, distributing it on their social networks, instant messengers and among friends, which will allow you to receive a certain percentage from the purchase of goods from the attracted user, each attracted referral which will attract new customers will also generate rewards to its affiliate. This system works on a chain of blocks (blockchain) where each transaction is tracked with the help of which it is easy to determine the sequence of the referral system.
 

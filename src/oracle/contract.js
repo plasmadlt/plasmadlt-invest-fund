@@ -1,6 +1,6 @@
 const {Api, JsonRpc} = require('@plasma/plasmajs');
 const networkConfig = require('../config/plasma.network.config');
-const gmspConfig = require('../config/plasma.gmsp.config');
+const testConfig = require('../config/plasma.test.config');
 const JsSignatureProvider = require('@plasma/plasmajs/dist/plasmajs-jssig').default;
 const fetch = require('node-fetch');
 const {TextEncoder, TextDecoder} = require('util');
@@ -8,7 +8,7 @@ const loggerMaker = require('../config/logger.js');
 const logger = loggerMaker.getLogger('plasma-oracles');
 
 const rpc = new JsonRpc(networkConfig.httpEndpoint, {fetch});
-const signatureProvider = new JsSignatureProvider([gmspConfig.gmspKey]);
+const signatureProvider = new JsSignatureProvider([testConfig.testKey]);
 const api = new Api({rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder()});
 
 const BigNumber = require('bignumber.js');
@@ -20,9 +20,9 @@ const reward = async () => {
 
         const res = await rpc.get_table_rows( {
             json : true,
-            code : gmspConfig.gmspAccount,
-            scope : gmspConfig.gmspAccount,
-            table : 'gmsp.owner',
+            code : testConfig.testAccount,
+            scope : testConfig.testAccount,
+            table : 'test.owner',
             limit: 1,
             reverse : false,
             lower_bound : next_user.toString(),
@@ -32,16 +32,16 @@ const reward = async () => {
             break;
         }
 
-        const gmsp_owner = res.rows[0].owner;
-        console.log("GMSP payout -> ", gmsp_owner);
+        const test_owner = res.rows[0].owner;
+        console.log("test payout -> ", test_owner);
 
         try {
             await api.transact({
                 actions: [{
-                    account: gmspConfig.gmspContract,
+                    account: testConfig.testContract,
                     name: 'reward',
-                    authorization: [{ actor: gmspConfig.gmspAccount, permission: 'active' }],
-                    data: { user: gmsp_owner } ,
+                    authorization: [{ actor: testConfig.testAccount, permission: 'active' }],
+                    data: { user: test_owner } ,
                 }]
             },
             {
