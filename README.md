@@ -165,17 +165,17 @@ sol --url --wallet-url   wallet import --private-key 5JF************************
 * unlock wallet
 
 ```
-sol wallet unlock --password 5JF********************************
+sol --url --wallet-url wallet unlock --password 5JF********************************
 ```
 
 ## Buckle you token with ion contracts
 ```
-sol set contract accountname  Users/contracts/ion.token -p accountname@active
+sol --url --wallet-url set contract accountname  Users/contracts/ion.token -p accountname@active
 ```
 
 ## Deploy contract in production
 ```
-sol --url set contract accountname /Users/contracts/ion.token -p accountname@active
+sol --url --wallet-url --url set contract accountname /Users/contracts/ion.token -p accountname@active
 Reading WASM from Users/plasma//build/contracts/ion.token/ion.token.wasm...
 Publishing contract...
 executed transaction: Wcsc********************************  10048 bytes  4014 us
@@ -186,7 +186,7 @@ warning: transaction executed locally, but may not be confirmed by the network y
 ## Create Supply  
 
 ```
-sol --url  push action accountname create '{"issuer": "accountname", "maximum_supply": "1000000.000000 TEST"}' -p accountname@active
+sol --url --wallet-url  push action accountname create '{"issuer": "accountname", "maximum_supply": "1000000.000000 TEST"}' -p accountname@active
 
 
 executed transaction: eef5b********************************  120 bytes  729 us
@@ -197,7 +197,7 @@ warning: transaction executed locally, but may not be confirmed by the network y
 ## Check supply
 
 ```
- sol --url http://nothtrust.liberty.plasmadlt.com get currency stats accountname TEST
+ sol --url --wallet-url get currency stats accountname TEST
 
 
 {
