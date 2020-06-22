@@ -58,15 +58,13 @@ Useful links:
 ```
 6b40b56f9c93ef51736a3f0a973ff6d64190a68284f164726fa2be8786d49277
 ```
-**Testnet ChainID**
-```
-f9d5290291c3debff5604a147a1e11505e5d9f9e052d1d9657b61736b7ed4ec2
-```
+
 **Gateway Endpoint**
 
  * ***Mainet***  Liberty P2P adress https://plasmadlt.com/monitor
 
- * ***Testnet***  Friedman P2P adress https://plasmadlt.com/monitor
+ * Example ***--url***    tcffin.liberty.plasmadlt.com
+
 
 ---------------------------
 # Protocol Applicability
@@ -335,8 +333,10 @@ for choosing a project for investment.
 
 Any project wishing to receive investments can apply by registering in the invest fund system.
 To do this, you can use the following method
+```
 
 void addproject(ion::name user, ion::name project, ion::name bank, ion::asset quantity);
+```
 
 method parameters
      - user registering the project
